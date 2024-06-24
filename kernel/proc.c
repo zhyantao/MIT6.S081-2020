@@ -121,6 +121,9 @@ found:
     return 0;
   }
 
+  // Allocate a kernel page table.
+  p->kpagetable = kvmcreate();
+
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
@@ -150,6 +153,11 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+
+  // free kernel page table
+  if (p->kpagetable)
+    kvmfree(p->kpagetable, p->sz);
+  p->kpagetable = 0;
 }
 
 // Create a user page table for a given process,
@@ -475,9 +483,17 @@ scheduler(void)
         c->proc = p;
         swtch(&c->context, &p->context);
 
+        // Load the new kernel page table into core's satp register
+        // vmprint(p->kpagetable);
+        w_satp(MAKE_SATP(p->kpagetable));
+        sfence_vma();
+
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
+
+        // Load the new user page table into core's satp register
+        kvminithart();
 
         found = 1;
       }

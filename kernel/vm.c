@@ -121,6 +121,16 @@ kvmmap(uint64 va, uint64 pa, uint64 sz, int perm)
     panic("kvmmap");
 }
 
+// add a mapping to the kernel page table.
+// only used when booting.
+// does not flush TLB or enable paging.
+void
+kvmmap2(pagetable_t pagetable, uint64 va, uint64 pa, uint64 sz, int perm)
+{
+  if (mappages(pagetable, va, sz, pa, perm) != 0)
+    panic("kvmmap");
+}
+
 // translate a kernel virtual address to
 // a physical address. only needed for
 // addresses on the stack.
@@ -205,6 +215,34 @@ uvmcreate()
     return 0;
   memset(pagetable, 0, PGSIZE);
   return pagetable;
+}
+
+// copy a page table and all the mappings in it.
+// returns 0 if out of memory.
+pagetable_t
+kvmcreate()
+{
+  pagetable_t kpagetable = (pagetable_t) kalloc();
+  memset(kpagetable, 0, PGSIZE);
+
+  // copy from kernel_pagetable
+  for(int i = 1; i < 512; i++) {
+    kpagetable[i] = kernel_pagetable[i];
+  }
+
+  // uart registers
+  kvmmap2(kpagetable, UART0, UART0, PGSIZE, PTE_R | PTE_W);
+
+  // virtio mmio disk interface
+  kvmmap2(kpagetable, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);
+
+  // CLINT
+  kvmmap2(kpagetable, CLINT, CLINT, 0x10000, PTE_R | PTE_W);
+
+  // PLIC
+  kvmmap2(kpagetable, PLIC, PLIC, 0x400000, PTE_R | PTE_W);
+
+  return kpagetable;
 }
 
 // Load the user initcode into address 0 of pagetable,
@@ -297,6 +335,37 @@ uvmfree(pagetable_t pagetable, uint64 sz)
   if(sz > 0)
     uvmunmap(pagetable, 0, PGROUNDUP(sz)/PGSIZE, 1);
   freewalk(pagetable);
+}
+
+// Free a page table and all the physical memory pages
+void
+kvmfree(pagetable_t kpagetale, uint64 sz)
+{
+  // kpagetable is top level page table
+  pte_t pte = kpagetale[0]; // only used kpagetable[0]?
+
+  // get second level page table's physical address
+  pagetable_t pgtbl2 = (pagetable_t) PTE2PA(pte);
+
+  for (int i = 0; i < 512; i++) {
+    pte = pgtbl2[i];
+    if (pte & PTE_V) {
+      // get third level page table's physical address
+      pagetable_t pgtbl3 = (pagetable_t) PTE2PA(pte);
+
+      // free third level page table
+      kfree((void *) pgtbl3);
+
+      // clean pte that points to third level page table
+      pgtbl2[i] = 0;
+    }
+  }
+
+  // free second level page table
+  kfree((void *) pgtbl2);
+
+  // free top level page table
+  kfree((void *) kpagetale);
 }
 
 // Given a parent process's page table, copy
