@@ -7,3 +7,21 @@ Official website: https://pdos.csail.mit.edu/6.S081/2020/
 The official lectures are in English. For Chinese students,
 please refer to the following resources:
     https://github.com/huihongxiao/MIT6.S081
+
+1. To run the code, just use the command: 
+
+    make qemu
+
+2. To run the tests, use the command:
+
+    make grade
+
+3. To debug the code, use the command:
+
+    make qemu-gdb
+
+   then open a new terminal and use the command:
+
+    echo "set auto-load safe-path /" >> ~/.gdbinit
+    cd MIT6.S081-2020
+    gdb-multiarch
