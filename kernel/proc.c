@@ -234,6 +234,8 @@ userinit(void)
 
   p->state = RUNNABLE;
 
+  kvmmapuser(p->pid, p->kpagetable, p->pagetable, p->sz, 0);
+
   release(&p->lock);
 }
 
@@ -253,6 +255,7 @@ growproc(int n)
   } else if (n < 0) {
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
+  kvmmapuser(p->pid, p->kpagetable, p->pagetable, sz, p->sz);
   p->sz = sz;
   return 0;
 }
@@ -298,6 +301,8 @@ fork(void)
   pid = np->pid;
 
   np->state = RUNNABLE;
+
+  kvmmapuser(np->pid, np->kpagetable, np->pagetable, np->sz, 0);
 
   release(&np->lock);
 
@@ -477,12 +482,13 @@ scheduler(void)
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
-        swtch(&c->context, &p->context);
 
         // Load the new kernel page table into core's satp register
         // vmprint(p->kpagetable);
         w_satp(MAKE_SATP(p->kpagetable));
         sfence_vma();
+
+        swtch(&c->context, &p->context);
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
