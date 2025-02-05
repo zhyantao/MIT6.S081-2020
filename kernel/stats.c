@@ -19,7 +19,7 @@ static struct {
 
 int statscopyin(char*, int);
 int statslock(char*, int);
-  
+
 int
 statswrite(int user_src, uint64 src, int n)
 {
@@ -33,7 +33,7 @@ statsread(int user_dst, uint64 dst, int n)
 
   acquire(&stats.lock);
 
-  if(stats.sz == 0) {
+  if (stats.sz == 0) {
 #ifdef LAB_PGTBL
     stats.sz = statscopyin(stats.buf, BUFSZ);
 #endif
@@ -44,9 +44,9 @@ statsread(int user_dst, uint64 dst, int n)
   m = stats.sz - stats.off;
 
   if (m > 0) {
-    if(m > n)
-      m  = n;
-    if(either_copyout(user_dst, dst, stats.buf+stats.off, m) != -1) {
+    if (m > n)
+      m = n;
+    if (either_copyout(user_dst, dst, stats.buf + stats.off, m) != -1) {
       stats.off += m;
     }
   } else {
@@ -66,4 +66,3 @@ statsinit(void)
   devsw[STATS].read = statsread;
   devsw[STATS].write = statswrite;
 }
-
