@@ -7,6 +7,11 @@ Official Website: <https://pdos.csail.mit.edu/6.S081/2020/>
 The official lectures are in English. For Chinese students, please refer to the following resources:
 <https://github.com/huihongxiao/MIT6.S081>
 
+## Resources
+
+- [xv6 details](https://csdiy.wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/MIT6.S081/#xv6)
+- [answers](https://github.com/PKUFlyingPig/MIT6.S081-2020fall)
+
 ## Setting Up Environments
 
 ```bash
