@@ -12,7 +12,7 @@ The official lectures are in English. For Chinese students, please refer to the 
 - [xv6 details](https://csdiy.wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/MIT6.S081/#xv6)
 - [answers](https://github.com/PKUFlyingPig/MIT6.S081-2020fall)
 
-## Setting Up Environments
+## Setup Environment
 
 ```bash
 sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
@@ -41,19 +41,26 @@ sudo apt-get clean all
 sudo apt-get update
 ```
 
-## Starting the Machine
+## Run Kernel
 
 ```bash
 make qemu
 ```
 
-## Running Test Cases
+## Exit Kernel
+
+```bash
+Ctrl + A
+x
+```
+
+## Run Test Cases
 
 ```bash
 make grade
 ```
 
-## Debugging the Code
+## Debug
 
 Start the debugging environment:
 
