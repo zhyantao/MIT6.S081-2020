@@ -9,8 +9,9 @@ The official lectures are in English. For Chinese students, please refer to the 
 
 ## Resources
 
-- [xv6 details](https://csdiy.wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/MIT6.S081/#xv6)
-- [answers](https://github.com/PKUFlyingPig/MIT6.S081-2020fall)
+- [Xv6 Details](https://csdiy.wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/MIT6.S081/#xv6)
+- [Reference Answer 1](https://github.com/PKUFlyingPig/MIT6.S081-2020fall)
+- [Reference Answer 2](https://blog.miigon.net/categories/mit6-s081/)
 
 ## Setup Environment
 
