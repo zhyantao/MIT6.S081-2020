@@ -1,0 +1,46 @@
+> Which registers contain arguments to functions? 
+a0 ~ a7
+
+> For example, which register holds 13 in main's call to printf?
+a2
+
+> Where is the call to function f in the assembly code for main?
+No call to f in main function. inline function.
+26:	45b1                	li	a1,12
+
+> Where is the call to g? (Hint: the compiler may inline functions.)
+No call to g in the f function. inline function.
+14:	250d                	addiw	a0,a0,3
+
+> At what address is the function printf located?
+0x0000000000000630
+auipc ra, 0x0 表示将当前 PC 值加载到 ra 中。
+当前 PC 是 0x30，所以 ra = 0x30
+然后 jalr 1536(ra) 就是 ra + 1536 = 0x30 + 0x600 = 0x630
+
+> What value is in the register ra just after the jalr to printf in main?
+0x0000000000000038
+ra 寄存器在 RISC-V 架构中是 Return Address 寄存器，即返回地址寄存器。它的主要作用是用来保存函数调用的返回地址。
+当你在一个函数内部使用 jal 或者 jalr 指令进行函数调用时，RISC-V 硬件会自动将下一条指令的地址（即当前执行流在完成当前函数调用后应回到的地方）保存到 ra 寄存器中。
+
+> Run the following code.
+> 
+> 	unsigned int i = 0x00646c72;
+> 	printf("H%x Wo%s", 57616, &i);
+>       
+> What is the output?
+HE110 World
+
+r = 72
+l = 6c
+d = 64
+
+RISC-V is little-endian.
+
+If RISC-V is big-endian, we need to change i i to 0x00726c64.
+We don't need to change 57616.
+
+> In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?
+> 
+> 	printf("x=%d y=%d", 3);
+y=5221 (garbage value)
