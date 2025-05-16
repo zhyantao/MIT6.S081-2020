@@ -15,6 +15,8 @@ The official lectures are in English. For Chinese students, please refer to the 
 
 ## Setup Environment
 
+All guides is based on Ubuntu-20.04.
+
 ```bash
 sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
 cat <<EOF | sudo tee /etc/apt/sources.list
@@ -40,6 +42,10 @@ Update the package list:
 ```bash
 sudo apt-get clean all
 sudo apt-get update
+```
+
+```bash
+sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ```
 
 ## Run Kernel
