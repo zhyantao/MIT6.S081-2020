@@ -44,8 +44,11 @@ sudo apt-get clean all
 sudo apt-get update
 ```
 
+Install the necessory packages:
+
 ```bash
-sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
+sudo apt-get install git build-essential gdb-multiarch qemu-system-misc \
+    gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ```
 
 ## Run Kernel
