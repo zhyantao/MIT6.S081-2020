@@ -97,3 +97,31 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_sigalarm(void) // 系统调用不能有参数，必须通过 argint 或者 argaddr 来获取参数
+{
+  int interval;
+  uint64 handler;
+
+  if (argint(0, &interval) < 0 || argaddr(1, &handler) < 0) {
+    return -1;
+  }
+
+  // 设置 myproc 中的相关属性
+  struct proc *p = myproc();
+  p->alarm_interval = interval;
+  p->alarm_handler = (void(*)())handler;
+  p->alarm_ticks = interval; // 设置初始值
+  return 0;
+}
+
+uint64
+sys_sigreturn(void)
+{
+  // 将 trapframe 恢复到时钟中断之前的状态，恢复原本正在执行的程序流
+  struct proc *p = myproc();
+  *p->trapframe = *p->alarm_trapframe;
+  p->alarm_goingoff = 0;
+  return 0;
+}

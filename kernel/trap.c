@@ -77,8 +77,25 @@ usertrap(void)
     exit(-1);
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
+  // if(which_dev == 2)
+  //   yield();
+
+  // give up the CPU if this is a timer interrupt.
+  if (which_dev == 2) {
+    if (p->alarm_interval != 0) { // 如果设定了时钟事件，进入倒计时
+      p->alarm_ticks--;
+      if (p->alarm_ticks <= 0) { // 倒计时到，触发回调
+        if (!p->alarm_goingoff) {
+          p->alarm_ticks = p->alarm_interval; // 重置倒计时
+          // jump to execute alarm_handler
+          *p->alarm_trapframe = *p->trapframe;
+          p->trapframe->epc = (uint64)p->alarm_handler;
+          p->alarm_goingoff = 1;
+        }
+      }
+    }
     yield();
+  }
 
   usertrapret();
 }
