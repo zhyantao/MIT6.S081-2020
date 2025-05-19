@@ -29,6 +29,28 @@ trapinithart(void)
   w_stvec((uint64)kernelvec);
 }
 
+void
+handle_page_fault(uint64 addr) {
+  printf("Page fault at address %p\n", addr);
+  // Handle the page fault here, e.g., by allocating a new page
+  // and mapping it to the address.
+  char *mem;
+  mem = kalloc();
+  if (mem == 0) {
+    printf("Out of memory\n");
+    myproc()->killed = 1;
+    return;
+  }
+  memset(mem, 0, PGSIZE);
+  if (mappages(myproc()->pagetable, PGROUNDDOWN(addr), PGSIZE, (uint64)mem, PTE_W|PTE_R|PTE_X|PTE_U) != 0) {
+    kfree(mem);
+    printf("Failed to map page\n");
+    myproc()->killed = 1;
+    return;
+  }
+  printf("Page fault handled, allocated page at %p\n", mem);
+}
+
 //
 // handle an interrupt, exception, or system call from user space.
 // called from trampoline.S
@@ -68,9 +90,21 @@ usertrap(void)
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
-    printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
-    printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
-    p->killed = 1;
+    // page fault or other trap.
+    if (r_scause() == 15 || r_scause() == 13) {
+      // page fault
+      uint64 addr = r_stval(); // address that caused the fault
+      if (addr >= MAXVA) {
+        printf("usertrap(): unexpected stval %p pid=%d\n", addr, p->pid);
+        printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+        p->killed = 1;
+      } else {
+        // handle page fault
+        handle_page_fault(addr);
+      }
+    } else {
+      // other trap
+    }
   }
 
   if(p->killed)
