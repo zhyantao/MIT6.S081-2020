@@ -50,7 +50,7 @@ sys_sbrk(void)
 
   addr = p->sz;
   if (n < 0) {
-    uvmdealloc(p->pagetable, p->sz, p->sz + n); // 释放内存
+    uvmdealloc(p->pagetable, p->sz, p->sz + n); // 如果是释放内存，则马上释放
   }
   p->sz += n; // 懒分配
 

@@ -5,6 +5,8 @@
 #include "riscv.h"
 #include "defs.h"
 #include "fs.h"
+#include "spinlock.h"
+#include "proc.h"
 
 /*
  * the kernel's page table.
@@ -181,9 +183,9 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
 
   for(a = va; a < va + npages*PGSIZE; a += PGSIZE){
     if((pte = walk(pagetable, a, 0)) == 0)
-      panic("uvmunmap: walk");
+      continue; // 懒加载
     if((*pte & PTE_V) == 0)
-      continue; // don't panic if the page is not present
+      continue; // 懒加载
     if(PTE_FLAGS(*pte) == PTE_V)
       panic("uvmunmap: not a leaf");
     if(do_free){
@@ -315,9 +317,9 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walk(old, i, 0)) == 0)
-      panic("uvmcopy: pte should exist");
+      continue; // 懒加载
     if((*pte & PTE_V) == 0)
-      panic("uvmcopy: page not present");
+      continue; // 懒加载
     pa = PTE2PA(*pte);
     flags = PTE_FLAGS(*pte);
     if((mem = kalloc()) == 0)
@@ -356,6 +358,10 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 {
   uint64 n, va0, pa0;
 
+  if (uvmshouldtouch(dstva)) {
+    uvmlazytouch(va);
+  }
+
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
     pa0 = walkaddr(pagetable, va0);
@@ -380,6 +386,10 @@ int
 copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 {
   uint64 n, va0, pa0;
+
+  if (uvmshouldtouch(dstva)) {
+    uvmlazytouch(va);
+  }
 
   while(len > 0){
     va0 = PGROUNDDOWN(srcva);
@@ -439,4 +449,30 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
+}
+
+void
+uvmlazytouch(uint64 va) {
+  struct proc* p = myproc();
+  char* mem = kalloc();
+  if (mem == 0) {
+    printf("lazy alloc: out of memory\n");
+    p->killed = 1;
+  } else {
+    memset(mem, 0, PGSIZE);
+    if (mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, (PTE_R|PTE_W|PTE_X|PTE_U) != 0) {
+      printf("lazy alloc: failed to map page\n");
+      kfree(mem);
+      p->killed = 1;
+    }
+  }
+}
+
+void
+uvmshouldtouch(uint64 va) {
+  pte_t *pte;
+  struct proc *p = myproc();
+  return (va < p->sz)  // va 在进程空间内
+    && (PGROUNDDOWN(va) != r_sp()) // va 不是栈顶
+    && ((pte= walk(p->pagetable, va, 0)) == 0 || ((*pte & PTE_V) == 0)); // va 对应的页表项不存在或无效，需要 lazy allocate
 }
