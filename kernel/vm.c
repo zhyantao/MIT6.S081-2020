@@ -359,7 +359,7 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
   uint64 n, va0, pa0;
 
   if (uvmshouldtouch(dstva)) {
-    uvmlazytouch(va);
+    uvmlazytouch(dstva);
   }
 
   while(len > 0){
@@ -387,8 +387,8 @@ copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
 {
   uint64 n, va0, pa0;
 
-  if (uvmshouldtouch(dstva)) {
-    uvmlazytouch(va);
+  if (uvmshouldtouch(srcva)) {
+    uvmlazytouch(srcva);
   }
 
   while(len > 0){
@@ -460,7 +460,7 @@ uvmlazytouch(uint64 va) {
     p->killed = 1;
   } else {
     memset(mem, 0, PGSIZE);
-    if (mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, (PTE_R|PTE_W|PTE_X|PTE_U) != 0) {
+    if (mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, PTE_R|PTE_W|PTE_X|PTE_U) != 0) {
       printf("lazy alloc: failed to map page\n");
       kfree(mem);
       p->killed = 1;
@@ -468,7 +468,7 @@ uvmlazytouch(uint64 va) {
   }
 }
 
-void
+int
 uvmshouldtouch(uint64 va) {
   pte_t *pte;
   struct proc *p = myproc();
