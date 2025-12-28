@@ -67,6 +67,12 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
+  } else if ((r_scause() == 15 || r_scause() == 13) && iscowpage(r_stval())) {
+    // 若是由于访问 COW 页面引发的异常，则进行页面复制操作
+    if (uvmcowcopy(r_stval()) < 0) {
+      printf("usertrap(): uvmcowcopy failed pid=%d\n", p->pid);
+      p->killed = 1;
+    }
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());

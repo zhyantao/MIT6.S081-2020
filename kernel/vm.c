@@ -5,6 +5,8 @@
 #include "riscv.h"
 #include "defs.h"
 #include "fs.h"
+#include "spinlock.h"
+#include "proc.h"
 
 /*
  * the kernel's page table.
@@ -311,7 +313,6 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
   pte_t *pte;
   uint64 pa, i;
   uint flags;
-  char *mem;
 
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walk(old, i, 0)) == 0)
@@ -319,14 +320,19 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     if((*pte & PTE_V) == 0)
       panic("uvmcopy: page not present");
     pa = PTE2PA(*pte);
-    flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
-      goto err;
-    memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
-      kfree(mem);
-      goto err;
+
+    if (*pte & PTE_W) { // 仅对可写页进行写时复制处理
+      *pte &= ~PTE_W;   // 清除父进程的 PTE_W 标志
+      *pte |= PTE_COW;  // 设置 PTE_COW 标志，表示该页为写时复制页
     }
+
+    flags = PTE_FLAGS(*pte);
+
+    // 将父进程的物理页直接 map 到子进程
+    if (mappages(new, i, PGSIZE, (uint64)pa, flags) != 0)
+      goto err;
+
+    krefinc((void*)pa);  // 增加物理页引用计数
   }
   return 0;
 
@@ -355,6 +361,12 @@ int
 copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 {
   uint64 n, va0, pa0;
+
+  if (iscowpage(dstva)) {
+    if (uvmcowcopy(dstva) < 0) {
+      return -1;
+    }
+  }
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
@@ -439,4 +451,61 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
+}
+
+// Check if the page at virtual address va is a COW page
+// Returns 1 if it is a COW page, 0 otherwise
+int
+iscowpage(uint64 va)
+{
+  pte_t *pte;
+  struct proc *p = myproc();
+
+  // 虚拟地址超出进程大小范围，直接返回不是 COW 页
+  if (va >= p->sz)
+    return 0;
+
+  pte = walk(p->pagetable, va, 0);
+  if(pte == 0) // PTE 不存在
+    return 0;
+  if(*pte & PTE_V && *pte & PTE_COW) // PTE 有效且为 COW 页
+    return 1;
+  else
+    return 0;
+}
+
+// Handle copy-on-write page fault for the page at virtual address va
+// Returns 0 on success, -1 on failure
+int
+uvmcowcopy(uint64 va)
+{
+  pte_t *pte;
+  uint64 pa;
+  uint64 newpa;
+  uint64 flags;
+  struct proc *p = myproc();
+
+  // 获取虚拟地址对应的 PTE
+  pte = walk(p->pagetable, va, 0);
+  if(pte == 0) {
+    panic("uvmcowcopy: invalid COW page fault");
+  }
+
+  pa = PTE2PA(*pte); // 获取物理地址
+  newpa = (uint64)krefdec((void*)pa); // 分配新物理页并复制内容
+  if (newpa == 0) {
+    return -1; // 分配新物理页失败
+  }
+
+  // 更新 PTE，指向新物理页，设置为可写，清除 COW 标志
+  flags = PTE_FLAGS(*pte);
+  flags |= PTE_W;      // 设置为可写
+  flags &= ~PTE_COW;   // 清除 COW 标志
+
+  uvmunmap(p->pagetable, PGROUNDDOWN(va), 1, 0); // 取消原有映射
+  if (mappages(p->pagetable, va, 1, (uint64)newpa, flags) != 0) {
+    panic("uvmcowcopy: mappages failed");
+  }
+
+  return 0; // 成功处理 COW 页面错误
 }
