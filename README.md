@@ -1,19 +1,15 @@
 # MIT6.S081-2020
 
-This repository is a fork of the official repository.
-
-Official Website: <https://pdos.csail.mit.edu/6.S081/2020/>
-
-The official lectures are in English. For Chinese students, please refer to the following resources:
-<https://github.com/huihongxiao/MIT6.S081>
+This repository is a fork of the official repository <https://pdos.csail.mit.edu/6.S081/2020/>.
 
 ## Resources
 
-- [Xv6 Details](https://csdiy.wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/MIT6.S081/#xv6)
-- [Reference Answer 1](https://github.com/PKUFlyingPig/MIT6.S081-2020fall)
-- [Reference Answer 2](https://blog.miigon.net/categories/mit6-s081/)
+- [MIT 6.S081: Operating System Engineering](https://csdiy.wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/MIT6.S081/#xv6)
+- [PKUFlyingPig at GitHub](https://github.com/PKUFlyingPig/MIT6.S081-2020fall)
+- [Miigon's blog](https://blog.miigon.net/categories/mit6-s081/)
+- [huihongxiao at GitHub](https://github.com/huihongxiao/MIT6.S081)
 
-## Setup Environment
+## Environments
 
 All guides is based on Ubuntu-20.04.
 
@@ -51,26 +47,28 @@ sudo apt-get install git build-essential gdb-multiarch qemu-system-misc \
     gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ```
 
-## Run Kernel
+## How to run?
+
+Run the OS:
 
 ```bash
 make qemu
 ```
 
-## Exit Kernel
+Exit the OS:
 
 ```bash
 Ctrl + A
 x
 ```
 
-## Run Test Cases
+Check results:
 
 ```bash
 make grade
 ```
 
-## Debug
+## Debugging
 
 Start the debugging environment:
 
