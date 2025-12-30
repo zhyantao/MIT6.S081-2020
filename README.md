@@ -82,4 +82,7 @@ Then, open a new terminal and run the following commands:
 echo "set auto-load safe-path /" >> ~/.gdbinit
 cd MIT6.S081-2020
 gdb-multiarch
+file kernel/kernel
+b main
+r
 ```
