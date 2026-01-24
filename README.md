@@ -11,43 +11,20 @@ This repository is a fork of the official repository <https://pdos.csail.mit.edu
 
 ## Environments
 
-All guides is based on Ubuntu-20.04.
-
 ```bash
-sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
-cat <<EOF | sudo tee /etc/apt/sources.list
-# The source code repositories are commented out by default to speed up `apt update`. Uncomment if needed.
-deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse
-# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse
-deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse
-# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse
-deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse
-# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse
-
-deb http://security.ubuntu.com/ubuntu/ focal-security main restricted universe multiverse
-# deb-src http://security.ubuntu.com/ubuntu/ focal-security main restricted universe multiverse
-
-# Pre-release software sources are not recommended to be enabled.
-# deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
-# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
-EOF
-```
-
-Update the package list:
-
-```bash
-sudo apt-get clean all
-sudo apt-get update
-```
-
-Install the necessory packages:
-
-```bash
-sudo apt-get install git build-essential gdb-multiarch qemu-system-misc \
-    gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
+docker build -t mit-os-lab .
 ```
 
 ## How to run?
+
+```bash
+docker run -it \
+    --name mit-os-lab \
+    -v ~/.gitconfig:/root/.gitconfig:ro \
+    -v $(pwd):/workspace \
+    mit-os-lab \
+    /bin/bash
+```
 
 Run the OS:
 
