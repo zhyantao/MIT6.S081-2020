@@ -21,6 +21,7 @@ docker build -t mit-os-lab .
 docker run -it \
     --name mit-os-lab \
     -v ~/.gitconfig:/root/.gitconfig:ro \
+    -v ~/.ssh/:/root/.ssh/:ro \
     -v $(pwd):/workspace \
     mit-os-lab \
     /bin/bash
