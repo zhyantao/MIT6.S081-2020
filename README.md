@@ -12,6 +12,7 @@ This repository is a fork of the official repository <https://pdos.csail.mit.edu
 ## Environments
 
 ```bash
+# If you are using macOS (arm architecture), please run `git checkout arm-env' first
 docker build -t mit-os-lab .
 ```
 
