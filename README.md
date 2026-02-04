@@ -12,7 +12,7 @@ This repository is a fork of the official repository <https://pdos.csail.mit.edu
 ## Environments
 
 ```bash
-# If you are using macOS (arm architecture), please run `git checkout arm' first
+# If you are using WSL or Other X86 architecture such as Ubuntu, please run `git checkout master' first
 docker build -t mit-os-lab .
 ```
 
