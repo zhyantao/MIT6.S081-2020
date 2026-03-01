@@ -11,22 +11,43 @@ This repository is a fork of the official repository <https://pdos.csail.mit.edu
 
 ## Environments
 
+All guides is based on Ubuntu-20.04.
+
 ```bash
-# If you are using macOS (arm architecture), please run `git checkout arm-env' first
-docker build -t mit-os-lab .
+sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+cat <<EOF | sudo tee /etc/apt/sources.list
+deb https://mirrors.aliyun.com/ubuntu/ jammy main restricted universe multiverse
+deb-src https://mirrors.aliyun.com/ubuntu/ jammy main restricted universe multiverse
+
+deb https://mirrors.aliyun.com/ubuntu/ jammy-security main restricted universe multiverse
+deb-src https://mirrors.aliyun.com/ubuntu/ jammy-security main restricted universe multiverse
+
+deb https://mirrors.aliyun.com/ubuntu/ jammy-updates main restricted universe multiverse
+deb-src https://mirrors.aliyun.com/ubuntu/ jammy-updates main restricted universe multiverse
+
+# deb https://mirrors.aliyun.com/ubuntu/ jammy-proposed main restricted universe multiverse
+# deb-src https://mirrors.aliyun.com/ubuntu/ jammy-proposed main restricted universe multiverse
+
+deb https://mirrors.aliyun.com/ubuntu/ jammy-backports main restricted universe multiverse
+deb-src https://mirrors.aliyun.com/ubuntu/ jammy-backports main restricted universe multiverse
+EOF
+```
+
+Update the package list:
+
+```bash
+sudo apt-get clean all
+sudo apt-get update
+```
+
+Install the necessory packages:
+
+```bash
+sudo apt-get install git build-essential gdb-multiarch qemu-system-misc \
+    gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ```
 
 ## How to run?
-
-```bash
-docker run -it \
-    --name mit-os-lab \
-    -v ~/.gitconfig:/root/.gitconfig:ro \
-    -v ~/.ssh/:/root/.ssh/:ro \
-    -v $(pwd):/workspace \
-    mit-os-lab \
-    /bin/bash
-```
 
 Run the OS:
 
